@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const db = require("./db");
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -7,34 +8,53 @@ app.use(bodyParser.json());
 
 const port = 3000;
 
-const data = [
-    { name: "Anna", age: 38 },
-    { name: "Hugo", age: 21 },
-    { name: "Henrich", age: 31 },
-    { name: "Franz", age: 22 },
-    { name: "Lisa", age: 45 },
-    { name: "George", age: 36 }
-];
-
-app.get("/people", (req, res) => {
-    res.send(data);
+app.get("/people", async (req, res) => {
+    let sql = "SELECT * FROM people;";
+    try {
+        let result = await db.query(sql);
+        res.send(result);
+    } catch (error) {
+        res.send("error:", error);
+    }
 });
 
-app.get("/people/:id", (req, res) => {
-    let id = req.params.id;
-    res.send(data[id]);
+app.get("/people/:id", async (req, res) => {
+    let personId = req.params.id;
+    let sql = "SELECT firstname, lastname FROM people WHERE id=?;";
+    try {
+        let result = await db.query(sql, [personId]);
+        res.send(result);
+    } catch (error) {
+        res.status(404).send("error:", error);
+    }
 })
 
-app.post("/people", (req, res) => {
-    data.push(req.body);
-    res.send(req.body);
+app.post("/people", async (req, res) => {
+    let person = req.body;
+    console.log(person);
+
+    let sql = "INSERT INTO people (firstname, lastname) values(?,?)";
+    try {
+        let result = await db.query(sql, [person.firstname, person.lastname]);
+        res.send(result);
+    } catch (error) {
+        res.send(error.massage);
+    }
 })
 
-app.delete("/people/:id", (req, res) => {
-    let id = req.params.id;
-    data.splice(id, 1);
+app.delete("/people/:id", async (req, res) => {
+    let personId = req.params.id;
+    let sql = "DELETE FROM people WHERE id=?;";
+    try {
+        let result = await db.query(sql, [personId]);
+        res.send(result);
+    } catch (error) {
+        res.send("error:", error);
+    }
 })
 
 app.listen(port, () => {
     console.log("Server running on port " + port);
 })
+
+module.exports = app;
