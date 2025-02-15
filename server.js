@@ -25,17 +25,27 @@ app.get("/people/:id", async (req, res) => {
         let result = await db.query(sql, [personId]);
         res.send(result);
     } catch (error) {
-        res.status(404).send("error:", error);
+        res.send("error:", error);
     }
 })
 
 app.post("/people", async (req, res) => {
     let person = req.body;
-    console.log(person);
-
-    let sql = "INSERT INTO people (firstname, lastname) values(?,?)";
+    let sql = "INSERT INTO people (firstname, lastname) VALUES(?,?)";
     try {
         let result = await db.query(sql, [person.firstname, person.lastname]);
+        res.send(result);
+    } catch (error) {
+        res.send(error.massage);
+    }
+})
+
+app.put("/people/:id", async (req, res) => {
+    let person = req.body;
+    let id = req.params.id;
+    let sql = "UPDATE people SET firstname=?, lastname=? WHERE id=?;";
+    try {
+        let result = await db.query(sql, [person.firstname, person.lastname, id]);
         res.send(result);
     } catch (error) {
         res.send(error.massage);
